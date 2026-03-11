@@ -3,9 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <title>Blackjack</title>
+  <link rel="stylesheet" href="./src/css/style.css">
+
 </head>
 <body>
-  <h1>Blackjack</h1>
-  <script type="module" src="./src/main.js"></script>
+  
+  <div id="background"></div>
+
+  <main id="game">
+
+   <h1>Blackjack</h1>
+
+   <!--Dealer-->
+   <section id="dealer">
+     <h2>Dealer</h2>
+     <div class="cards" id="dealer-cards"></div>
+     <div id="dealer-cards" class="cards"></div>
+     <p>Pontos: <span id="dealer-points">0</span></p>
+    </section>
+
+
+
+    <!--Jogador-->
+   <section id="player">
+   <h2>Jogador</h2>
+   <div class="cards" id="player-cards"></div>
+   <div id="player-cards" class="cards"></div>
+   <p>Pontos: <span id="player-points">0</span></p>
+   </section>
+
+    <!--Controles-->
+   <section id="controls">
+     <button id="hit">Pedir carta</button>
+     <button id="stand">Parar</button>
+     <button id="restart">Reiniciar</button>
+   </section>
+
+   <!--Message-->
+    <p id="message"></p>
+
+  </main>  
+
+
+  <script type="module" src="./src/js/main.js"></script>
 </body>
 </html>
