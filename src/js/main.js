@@ -11,52 +11,62 @@ const restartBtn = document.getElementById("restart");
 
 const messageEl = document.getElementById("message");
 
-// ======= BACKGROUND =======
-const backgroundEl = document.getElementById("background");
 
-function setBackground(state) {
-  backgroundEl.className = "";
 
-  switch (state) {
-    case "win":
-      backgroundEl.classList.add("bg-win");
-      break;
-    case "lose":
-      backgroundEl.classList.add("bg-lose");
-      break;
-    default:
-      backgroundEl.classList.add("bg-neutral");
-  }
-}
 
 
 // ======= ESTADO DO JOGO =======
 let playerHand = [];
 let dealerHand = [];
 
+
 // ======= UTILITARIOS =======
+let dealerHidden = true;
 
 function getCardImage(card) {
   const suitName = suitMap[card.suit];
   return `./src/images/cards/${suitName}_${card.label}.png`;
 }
 
-function renderCards(container, hand) {
-  container.innerHTML = "";
 
-  for (const card of hand) {
-    const cardEl = document.createElement("div");
-    cardEl.classList.add("card");
+
+//======CRIAR CARTA =====
+function addCard(container, card, hide = false) {
+
+  const cardEl = document.createElement("div");
+  cardEl.classList.add("card", "card-enter");
+
+  if (hide) {
+
+    cardEl.classList.add("flip-card");
+
+    const inner = document.createElement("div");
+    inner.classList.add("flip-inner");
+
+    const back = document.createElement("img");
+    back.src = "./src/images/cards/back_dark.png";
+    back.classList.add("card-face");
+
+    const front = document.createElement("img");
+    front.src = getCardImage(card);
+    front.classList.add("card-face", "card-front");
+
+    inner.appendChild(back);
+    inner.appendChild(front);
+    cardEl.appendChild(inner);
+
+  } else {
 
     const img = document.createElement("img");
     img.src = getCardImage(card);
-    img.alt = `${card.label} de ${suitMap[card.suit]}`;
     img.classList.add("card-img");
 
     cardEl.appendChild(img);
-    container.appendChild(cardEl);
   }
+
+  container.appendChild(cardEl);
 }
+
 
 // ======= BARALHO (VERSÃO SIMPLES) =======
 const suitMap = {
@@ -115,22 +125,38 @@ function calculatePoints(hand) {
 
 
 function updatePoints() {
+
   playerPointsEl.textContent = calculatePoints(playerHand);
-  dealerPointsEl.textContent = calculatePoints(dealerHand);
+
+  if (dealerHidden) {
+    dealerPointsEl.textContent = dealerHand[0].points;
+  } else {
+    dealerPointsEl.textContent = calculatePoints(dealerHand);
+  }
+
 }
 
 // ======= CONTROLE DO JOGO =======
 function startGame() {
-  setBackground("neutral");
+
+  dealerHidden = true;
   playerHand = [];
   dealerHand = [];
+
+  dealerCardsEl.innerHTML = "";
+  playerCardsEl.innerHTML = "";
+
   messageEl.textContent = "";
 
   playerHand.push(drawCard(), drawCard());
-  dealerHand.push(drawCard());
+  dealerHand.push(drawCard(), drawCard());
 
-  renderCards(playerCardsEl, playerHand);
-  renderCards(dealerCardsEl, dealerHand);
+  addCard(playerCardsEl, playerHand[0]);
+  addCard(playerCardsEl, playerHand[1]);
+
+  addCard(dealerCardsEl, dealerHand[0]);
+  addCard(dealerCardsEl, dealerHand[1], true);
+
   updatePoints();
 
   hitBtn.disabled = false;
@@ -144,39 +170,70 @@ function endGame() {
 
 // ======= EVENTOS =======
 hitBtn.addEventListener("click", () => {
-  playerHand.push(drawCard());
-  renderCards(playerCardsEl, playerHand);
+
+  const newCard = drawCard();
+  playerHand.push(newCard);
+
+  addCard(playerCardsEl, newCard);
+
   updatePoints();
 
   if (calculatePoints(playerHand) > 21) {
-    messageEl.textContent = "💥 Você estorou!💥";
-    setBackground("win")
+    messageEl.textContent = "💥 Você estourou! 💥";
     endGame();
   }
 });
 
-standBtn.addEventListener("click", () => {
-  while (calculatePoints(dealerHand) < 17) {
-    dealerHand.push(drawCard());
-  }
-
-  renderCards(dealerCardsEl, dealerHand);
-  updatePoints();
+function finishGame() {
 
   const playerPoints = calculatePoints(playerHand);
   const dealerPoints = calculatePoints(dealerHand);
 
   if (dealerPoints > 21 || playerPoints > dealerPoints) {
     messageEl.textContent = "🎉 Você venceu! 🎉";
-    setBackground("lose")
   } else if (playerPoints < dealerPoints) {
-    setBackground("win")
     messageEl.textContent = "Dealer venceu!";
   } else {
     messageEl.textContent = "Empate!";
   }
 
   endGame();
+}
+
+function dealerTurn() {
+
+  if (calculatePoints(dealerHand) < 17) {
+
+    const newCard = drawCard();
+    dealerHand.push(newCard);
+
+    addCard(dealerCardsEl, newCard);
+
+    updatePoints();
+
+    setTimeout(dealerTurn, 800);
+
+  } else {
+    finishGame();
+  }
+
+}
+
+standBtn.addEventListener("click", () => {
+
+  standBtn.disabled = true;
+  hitBtn.disabled = true;
+
+  dealerHidden = false;
+
+  const hiddenCard = document.querySelector(".flip-card");
+
+  if (hiddenCard) {
+    hiddenCard.classList.add("flipped");
+  }
+
+  setTimeout(dealerTurn, 700);
+
 });
 
 restartBtn.addEventListener("click", startGame);
