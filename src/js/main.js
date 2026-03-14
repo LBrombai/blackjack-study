@@ -8,8 +8,13 @@ const playerPointsEl = document.getElementById("player-points");
 const hitBtn = document.getElementById("hit");
 const standBtn = document.getElementById("stand");
 const restartBtn = document.getElementById("restart");
+const musicToggleBtn = document.getElementById("music-toggle")
 
 const messageEl = document.getElementById("message");
+
+const ambientSound = new Audio("/src/audio/token_tango_soundtrack.mp3")
+const victorySound = new Audio("/src/audio/token_tango_win.m4a")
+const loseSound = new Audio("/src/audio/token_tango_lose.m4a")
 
 
 
@@ -18,6 +23,24 @@ const messageEl = document.getElementById("message");
 // ======= ESTADO DO JOGO =======
 let playerHand = [];
 let dealerHand = [];
+
+// ======= MUSICA DE FUNDO =======
+ambientSound.loop = true;
+ambientSound.volume = 0.3;
+ambientSound.play();
+let muteMusic = false
+function toggleMusic(){
+  if(muteMusic){
+    ambientSound.play()
+    muteMusic = false
+    musicToggleBtn.textContent = "🔊"
+  }else{
+    ambientSound.pause()
+    muteMusic = true
+    musicToggleBtn.textContent = "🔇"
+  }
+}
+musicToggleBtn.addEventListener("click", toggleMusic)
 
 
 // ======= UTILITARIOS =======
@@ -138,7 +161,7 @@ function updatePoints() {
 
 // ======= CONTROLE DO JOGO =======
 function startGame() {
-
+  ambientSound.play();
   dealerHidden = true;
   playerHand = [];
   dealerHand = [];
@@ -180,6 +203,8 @@ hitBtn.addEventListener("click", () => {
 
   if (calculatePoints(playerHand) > 21) {
     messageEl.textContent = "💥 Você estourou! 💥";
+    ambientSound.pause();
+    loseSound.play();
     endGame();
   }
 });
@@ -191,7 +216,11 @@ function finishGame() {
 
   if (dealerPoints > 21 || playerPoints > dealerPoints) {
     messageEl.textContent = "🎉 Você venceu! 🎉";
+    ambientSound.pause();
+    victorySound.play();
   } else if (playerPoints < dealerPoints) {
+    ambientSound.pause();
+    loseSound.play()
     messageEl.textContent = "Dealer venceu!";
   } else {
     messageEl.textContent = "Empate!";
